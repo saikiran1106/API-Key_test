@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login Page</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+</head>
+
+<body>
+    <div class="card">
+        <h1>Sign In</h1>
+
+        <div class="input-container">
+            <label for="DID">DID:</label>
+            <input type="text" id="DID" name="DID">
+        </div>
+        <h3>Or</h3>
+        <div class="input-container">
+            <label for="mobile">Mobile:</label>
+            <input type="tel" id="mobile" name="mobile">
+        </div>
+        <div class="submit-container">
+            <button onclick="check()" id="loginbutton">Login</button>
+        </div>
+
+        <!-- Popup for OTP verification -->
+        <div class="popup" id="otpPopup">
+            <h2>Enter OTP</h2>
+            <input type="text" id="otpInput" placeholder="OTP">
+            <button class="rounded-btn" onclick="verifyOtp()">Verify</button>
+        </div>
+
+        <p class="signup-suggestion">Not yet registered? <a href="http://localhost:3000/signup">Signup Now</a></p>
+
+    </div>
+</body>
+
+<script>
+    const did = document.getElementById("DID").value;
+    const mobileNumber = document.getElementById("mobile").value;
+    const loginbutton = document.getElementById("loginbutton");
+
+    function showOtpPopup() {
+            const otpPopup = document.getElementById("otpPopup");
+            const login = document.getElementById("loginbutton");
+            otpPopup.style.display = "block";
+            login.disabled = true;
+        }
+
+    async function sendOtp() {
+
+                const mobileNumber = document.getElementById("mobile").value;
+                if (!mobileNumber) {
+                    alert("Please enter a valid mobile number.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch("http://localhost:3000/send-otp", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ mobile: mobileNumber }),
+                    });
+
+
+                    const data = await response.json();
+                    console.log(data);
+
+                    showOtpPopup();
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+    async function check() {
+        const DID = document.getElementById("DID").value;
+        const mobileNumber = document.getElementById("mobile").value;
+
+        if (!mobileNumber) {
+            alert("Please enter a valid mobile number.");
+            return;
+        }
+
+        
+        try {
+            const response = await fetch("http://localhost:3000/check", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ mobile: mobileNumber, otp: otpInput }),
+            });
+
+            const data = await response.json();
+            console.log(data);
+
+
+            // Check if OTP verification is successful
+            if (data.message === "User not found ") {
+             
+                alert("you are not a bescom user")
+                
+            } else {
+                try {
+                    const response = await fetch("http://localhost:3000/monthly-consumption", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ DID, mobile: mobileNumber }),
+                    });
+
+                    const data = await response.json();
+                    const verification = data.verified;
+                    const otp = data.otp
+
+                    if (verification === "yes") {
+
+                        sendOtp();
+                        showOtpPopup();
+                        if (!otpinput) {
+                            alert("Please enter OTP");
+                        }
+                        else {
+                            const otpinput = document.getElementById("otpInput").value;
+
+                            if (otp === otpinput) {
+
+                                // Login successful, redirect to the dashboard or home page
+                                window.location.href = `dashboard/index.html?mobile=${encodeURIComponent(mobileNumber)}&otp=${encodeURIComponent(otpinput)}`;
+                            }
+                            else {
+                                alert("OTP verification failed. Please try again.");
+                            }
+                        }
+                    } else {
+                        // Display error message to the user
+                        alert("Invalid credentials or user not verified.");
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+                }
+            }
+        } catch (error) {
+            
+            console.error(error);
+        }
+
+        
+    }
+
+
+    async function verifyOtp() {
+            const otpInput = document.getElementById("otpInput").value;
+            const mobileNumber = document.getElementById("mobile").value;
+
+            if (!otpInput) {
+                alert("Please enter OTP");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:3000/verify-otp", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ mobile: mobileNumber, otp: otpInput }),
+                });
+
+                const data = await response.json();
+                console.log(data);
+
+
+                // Check if OTP verification is successful
+                if (data.message === "OTP verified successfully" || data.message === "User already verified.") {
+                    // Redirect to the dashboard page with the mobile number in the URL
+                    window.location.href = `http://localhost:3000/dashboard/index.html?mobile=${encodeURIComponent(mobileNumber)}&otp=${encodeURIComponent(otpInput)}`;
+                } else {
+                    // Display error message to the user
+                    alert("OTP verification failed. Please try again.");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+</script>
+
+</html>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .card {
+        background-color: #f0f0f0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        border-radius: 10px;
+        width: 300px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    h3 {
+        text-align: center;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .input-container {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        background-color: #ddd;
+        cursor: not-allowed;
+    }
+
+    .signup-suggestion {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .signup-suggestion a {
+        color: #007BFF;
+        text-decoration: none;
+    }
+
+    .signup-suggestion a:hover {
+        text-decoration: underline;
+    }
+      .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px;
+        background-color: #f1f1f1;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 1;
+    }
+
+    .popup h2 {
+        margin-bottom: 10px;
+    }
+</style>

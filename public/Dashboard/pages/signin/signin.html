@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In</title>
+<link rel="stylesheet" href="signin.css">
+<script src="script.js"></script>
+<!-- Add your CSS link here -->
+</head>
+
+<body>
+    <div class="container">
+        <h1>Sign In</h1>
+        <form id="loginForm" >
+            <div>
+                <label for="did">DID:</label>
+                <input type="text" id="did" name="did" >
+            </div>
+            <p>OR</p>
+            <div>
+                <label for="number">Mobile Number:</label>
+                <input type="text" id="mobile" name="username" required>
+            </div>
+            <div>
+                <input type="submit" value="Sign In" id="signin-btn" ">
+            </div>
+        </form>
+        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+    </div>
+
+    <div class="otp-modal" id="otpModal">
+        <div class="otp-content">
+            <span class="close-btn" onclick="closeOTPModal()">&times;</span>
+            <h2>Enter your OTP</h2>
+            <input type="text" id="otp-input" placeholder="Enter OTP">
+            <button onclick="validateOTP()" class="otp-verify-button">Verify</button>
+        </div>
+    </div>
+
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const mobileNumber = document.getElementById("mobile").value;
+            window.location.href = `http://localhost:3000/dashboard?mobile=${mobileNumber}`;
+        });
+    </script>
+</body>
+
+</html>
